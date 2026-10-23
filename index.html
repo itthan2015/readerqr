@@ -107,6 +107,7 @@
 
   <header class="bar">
     <div class="ttl"><b>สแกนคูปองอาหาร</b><span id="who"></span></div>
+    <button class="ib" id="btnSwitch" aria-label="สลับกล้อง" hidden><span class="material-symbols-outlined">cameraswitch</span></button>
     <button class="ib" id="btnTorch" aria-label="ไฟฉาย" hidden><span class="material-symbols-outlined">flashlight_on</span></button>
     <button class="ib" id="btnLogout" aria-label="ออกจากระบบ"><span class="material-symbols-outlined">logout</span></button>
   </header>
@@ -134,7 +135,7 @@ const GAS_URL_CONFIG = 'https://script.google.com/macros/s/XXXXXXXX/exec';
 
 (function () {
   const $ = s => document.querySelector(s);
-  const OK_URL = u => /^https:\/\/script\.google\.com\/(a\/[^/]+\/)?macros\/s\/[^/]+\/exec$/.test(u || '');
+  const OK_URL = u => /^https:\/\/script\.google\.com\/(a\/macros\/[^/]+|macros)\/s\/[^/]+\/exec$/.test(u || '');
   const pApi = new URLSearchParams(location.hash.slice(1)).get('api') || new URLSearchParams(location.search).get('api');
   if (OK_URL(pApi)) localStorage.setItem('lws_api', pApi);
   const GAS_URL = OK_URL(localStorage.getItem('lws_api')) ? localStorage.getItem('lws_api') : GAS_URL_CONFIG;
@@ -191,7 +192,8 @@ const GAS_URL_CONFIG = 'https://script.google.com/macros/s/XXXXXXXX/exec';
   }
   function start(emp) {
     $('#login').hidden = true; $('#app').hidden = false;
-    $('#who').textContent = emp.full_name || '';
+    $('#who').innerHTML = esc(emp.full_name || '') + (DEMO ? ' · <b style="color:#ffb4ab">โหมดตัวอย่าง ไม่บันทึกจริง</b>' : ' · <span style="color:#9be7b4">เชื่อมต่อระบบแล้ว</span>');
+    if (DEMO) snack('โหมดตัวอย่าง: ยังไม่ได้เชื่อม Apps Script · เปิดจากปุ่ม "สแกน QR" ในแอป หรือเพิ่ม ?api=<Web app URL> ต่อท้ายลิงก์');
     refresh();
     startCam();
   }
@@ -212,23 +214,63 @@ const GAS_URL_CONFIG = 'https://script.google.com/macros/s/XXXXXXXX/exec';
     $('#frame').hidden = !on; $('#hint').hidden = !on;
     $('#frame').classList.toggle('paused', !on);
   }
-  async function startCam() {
+  const HINT = 'วาง QR ของพนักงานไว้ในกรอบ';
+  const isBack = l => /back|rear|environment|หลัง/i.test(l || '');
+  async function listCams() {
+    try {
+      const all = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+      const back = all.filter(d => isBack(d.label));
+      const rank = d => { const m = /(\d+)/.exec(d.label || ''); return m ? +m[1] : 99; };
+      S.cams = (back.length ? back : all).sort((a, b) => rank(a) - rank(b));
+    } catch (e) { S.cams = []; }
+    $('#btnSwitch').hidden = S.cams.length < 2;
+  }
+  /** deviceId: ระบุกล้อง (มือถือหลายเลนส์บางรุ่นเลือกเลนส์ที่ให้ภาพดำ จึงเลือกกล้องหลักเอง) */
+  async function startCam(deviceId) {
     if (S.cam) return;
     if (!window.jsQR) return camFail(new Error('โหลดตัวอ่าน QR (jsQR) ไม่สำเร็จ'));
     if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return camFail(new Error('เบราว์เซอร์ไม่รองรับกล้อง (ต้องเปิดผ่าน https)'));
     $('#startBox').hidden = true;
-    S.cam = true;
+    S.cam = true; S.dark = 0; S.started = performance.now();
     const v = $('#reader');
+    const video = deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: 'environment' } };
     try {
-      S.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+      S.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video });
       v.srcObject = S.stream;
       v.setAttribute('playsinline', ''); v.muted = true;
       await v.play();
-    } catch (e) { await stopCam(); return camFail(e); }
+    } catch (e) { await stopCam(); if (deviceId) return startCam(); return camFail(e); }
     const tr = S.stream.getVideoTracks()[0];
+    S.camId = (tr.getSettings && tr.getSettings().deviceId) || deviceId || '';
     try { const cap = tr.getCapabilities ? tr.getCapabilities() : {}; $('#btnTorch').hidden = !cap.torch; } catch (e) { $('#btnTorch').hidden = true; }
-    overlay(true);
+    overlay(true); $('#hint').textContent = HINT;
+    if (!S.cams) await listCams();
+    if (!deviceId && !S.pickedMain && S.cams.length > 1) {
+      S.pickedMain = true;
+      const main = S.cams[0];
+      if (main.deviceId && main.deviceId !== S.camId) { await stopCam(); return startCam(main.deviceId); }
+    }
     loop();
+  }
+  async function switchCam() {
+    if (!S.cams) await listCams();
+    if (S.cams.length < 2) return;
+    const i = S.cams.findIndex(c => c.deviceId === S.camId);
+    const next = S.cams[(i + 1) % S.cams.length];
+    await stopCam();
+    startCam(next.deviceId);
+  }
+  function darkFrame(now) {
+    S.dark = S.dark || now;
+    if (now - S.dark < 2500) return false;
+    if (S.cams && S.cams.length > 1 && (S.darkTries || 0) < S.cams.length) {
+      S.darkTries = (S.darkTries || 0) + 1;
+      snack('ภาพจากกล้องมืด กำลังสลับไปกล้องอื่น…');
+      switchCam();
+      return true;
+    }
+    $('#hint').textContent = 'ภาพจากกล้องมืด แตะปุ่มสลับกล้องด้านบน หรือปิดแท็บแล้วเปิดใหม่';
+    return false;
   }
   function loop() {
     if (!S.cam) return;
@@ -237,12 +279,18 @@ const GAS_URL_CONFIG = 'https://script.google.com/macros/s/XXXXXXXX/exec';
     if (now - S.tick < 110) return;
     S.tick = now;
     const v = $('#reader');
-    if (S.busy || v.readyState < 2 || !v.videoWidth) return;
+    if (v.readyState < 2 || !v.videoWidth) { if (now - S.started > 3000) darkFrame(now); return; }
+    if (S.busy) return;
     const vw = v.videoWidth, vh = v.videoHeight, side = Math.min(vw, vh) * 0.85;
     const n = Math.min(640, Math.round(side));
     cv.width = n; cv.height = n;
     cx.drawImage(v, (vw - side) / 2, (vh - side) / 2, side, side, 0, 0, n, n);
-    const r = jsQR(cx.getImageData(0, 0, n, n).data, n, n, { inversionAttempts: 'dontInvert' });
+    const d = cx.getImageData(0, 0, n, n).data;
+    let sum = 0, k = 0;
+    for (let i = 0; i < d.length; i += 400) { sum += d[i] + d[i + 1] + d[i + 2]; k++; }
+    if (sum / (3 * k) < 8) { if (darkFrame(now)) return; }
+    else if (S.dark) { S.dark = 0; S.darkTries = 0; $('#hint').textContent = HINT; }
+    const r = jsQR(d, n, n, { inversionAttempts: 'dontInvert' });
     if (r && r.data) onScan(r.data);
   }
   async function stopCam() {
@@ -331,13 +379,14 @@ const GAS_URL_CONFIG = 'https://script.google.com/macros/s/XXXXXXXX/exec';
   $('#btnRefresh').addEventListener('click', refresh);
   $('#btnStart').addEventListener('click', () => { beep(true); startCam(); });
   $('#btnTorch').addEventListener('click', toggleTorch);
+  $('#btnSwitch').addEventListener('click', () => { S.darkTries = 0; switchCam(); });
   $('#btnList').addEventListener('click', () => sheet(true));
   $('#btnClose').addEventListener('click', () => sheet(false));
   $('#scrim').addEventListener('click', () => sheet(false));
   $('#res').addEventListener('click', () => $('#res').classList.remove('show'));
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stopCam();
-    else if (S.token && !$('#app').hidden) startCam();
+    else if (S.token && !$('#app').hidden) startCam(S.camId || undefined);
   });
 
   const m = /[#&]t=([^&]+)/.exec(location.hash);
