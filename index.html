@@ -2,208 +2,316 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ReaderQR</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>LongWelaWai · สแกนคูปองอาหาร</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0" rel="stylesheet">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script type="module">import 'https://esm.run/@material/web/all.js';</script>
 <style>
-:root{--md-primary:#3b5ba9;--md-on-primary:#fff;--md-primary-container:#dae2ff;--md-on-primary-container:#001848;--md-secondary-container:#dde2f3;--md-on-secondary-container:#151b2c;--md-surface:#faf8ff;--md-surface-c-low:#f3f3fa;--md-surface-c:#ededf4;--md-surface-c-high:#e7e7ee;--md-on-surface:#1a1b21;--md-on-surface-var:#44464f;--md-outline:#757780;--md-outline-var:#c5c6d0;--md-error:#ba1a1a;--md-error-container:#ffdad6;--md-tertiary-container:#ffd8ec;--md-on-tertiary-container:#3a0b2a;--md-elev1:0 1px 2px rgba(0,0,0,.3),0 1px 3px 1px rgba(0,0,0,.15);--md-elev3:0 1px 3px rgba(0,0,0,.3),0 4px 8px 3px rgba(0,0,0,.15)}
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0;background:var(--md-surface);color:var(--md-on-surface);font-family:Roboto,"Noto Sans Thai",system-ui,sans-serif;font-size:14px;line-height:20px;letter-spacing:.25px}
-a{color:var(--md-primary)}a:hover{color:var(--md-on-primary-container)}
-.ms{font-family:"Material Symbols Outlined";font-weight:normal;font-style:normal;font-size:24px;line-height:1;display:inline-block;-webkit-font-smoothing:antialiased;font-feature-settings:"liga"}
-.top-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:16px;height:64px;padding:0 16px;background:var(--md-surface-c);}
-.top-bar h1{font-size:22px;line-height:28px;font-weight:400;margin:0;flex:1}
-.chip{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border:1px solid var(--md-outline-var);border-radius:8px;font-size:14px;font-weight:500;color:var(--md-on-surface-var)}
-.chip.live{background:var(--md-secondary-container);border-color:transparent;color:var(--md-on-secondary-container)}
-.chip .ms{font-size:18px}
-.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 48px}
-.headline{font-size:32px;line-height:40px;font-weight:400;margin:0 0 4px}
-.sub{color:var(--md-on-surface-var);margin:0 0 24px;font-size:16px;line-height:24px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:24px;align-items:start}
-.card{background:var(--md-surface-c-low);border-radius:12px;box-shadow:var(--md-elev1);overflow:hidden}
-.card.filled{background:var(--md-surface-c-high);box-shadow:none}
-.card-pad{padding:16px}
-.col{display:flex;flex-direction:column;gap:16px}
-.viewer{position:relative;aspect-ratio:1/1;background:#111318;color:#c5c6d0;display:grid;place-items:center}
-#reader{position:absolute;inset:0}#reader video{width:100%!important;height:100%!important;object-fit:cover;display:block}
-#reader:empty{display:none}
-.idle{display:flex;flex-direction:column;align-items:center;gap:12px;font-size:16px;text-align:center;padding:24px}
-.idle .ms{font-size:56px;color:#aac7ff}
-.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px}
-.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 24px;border:0;border-radius:20px;font:500 14px/20px Roboto,"Noto Sans Thai",sans-serif;letter-spacing:.1px;cursor:pointer;overflow:hidden;background:transparent;color:var(--md-primary)}
-.btn .ms{font-size:18px}
-.btn::after{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .15s}
-.btn:hover::after{opacity:.08}.btn:active::after{opacity:.12}
-.btn:disabled{opacity:.38;cursor:default}.btn:disabled::after{display:none}
-.btn-filled{background:var(--md-primary);color:var(--md-on-primary)}.btn-filled:hover{box-shadow:var(--md-elev1)}
-.btn-tonal{background:var(--md-secondary-container);color:var(--md-on-secondary-container)}
-.btn-outlined{border:1px solid var(--md-outline);padding:0 16px}
-.btn-text{padding:0 12px}
-:focus-visible{outline:3px solid var(--md-primary);outline-offset:2px}
-.select-field{position:relative;flex:1;min-width:180px}
-.select-field select,.text-field input{width:100%;height:56px;padding:20px 16px 6px;border:1px solid var(--md-outline);border-radius:4px;background:transparent;color:var(--md-on-surface);font:400 16px/24px Roboto,"Noto Sans Thai",sans-serif;appearance:none}
-.select-field select{padding-right:40px}
-.select-field .ms{position:absolute;right:12px;top:16px;pointer-events:none;color:var(--md-on-surface-var)}
-.select-field label,.text-field label{position:absolute;left:16px;top:6px;font-size:12px;line-height:16px;color:var(--md-on-surface-var);pointer-events:none}
-.select-field select:hover,.text-field input:hover{border-color:var(--md-on-surface)}
-.select-field select:focus-visible,.text-field input:focus-visible{outline:none;border:2px solid var(--md-primary);padding-left:15px}
-.text-field{position:relative;flex:1;min-width:180px}
-.status{display:flex;align-items:center;gap:8px;padding:0 16px 16px;color:var(--md-on-surface-var);min-height:20px}
-.status .ms{font-size:18px}.status.err{color:var(--md-error)}.status:empty{display:none}
-.label-s{font-size:12px;line-height:16px;font-weight:500;letter-spacing:.5px;color:var(--md-on-surface-var);text-transform:none}
-.code{font-size:22px;line-height:28px;word-break:break-all;margin:8px 0}
-.meta{display:flex;align-items:center;gap:6px;color:var(--md-on-surface-var)}.meta .ms{font-size:18px}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.list-head{display:flex;align-items:center;justify-content:space-between;padding:16px 8px 8px 16px}
-.title-l{font-size:22px;line-height:28px;font-weight:400;margin:0}
-.list{list-style:none;margin:0;padding:0 0 8px}
-.list li{display:flex;align-items:center;gap:16px;padding:12px 16px;min-height:72px}
-.list li+li{border-top:1px solid var(--md-outline-var)}
-.avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--md-primary-container);color:var(--md-on-primary-container)}
-.avatar.m{background:var(--md-tertiary-container);color:var(--md-on-tertiary-container)}
-.li-main{flex:1;min-width:0}
-.li-title{font-size:16px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.li-sub{color:var(--md-on-surface-var)}
-.empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:40px 16px;color:var(--md-on-surface-var);text-align:center}
-.empty .ms{font-size:40px}
-.snackbar{position:fixed;left:50%;bottom:24px;transform:translate(-50%,120px);min-width:280px;max-width:calc(100% - 32px);padding:14px 16px;border-radius:4px;background:#2f3036;color:#f1f0f7;box-shadow:var(--md-elev3);transition:transform .25s cubic-bezier(.2,0,0,1);z-index:5}
-.snackbar.show{transform:translate(-50%,0)}
-.btn:has(input:focus-visible){outline:3px solid var(--md-primary);outline-offset:2px}
-.btn.attn{animation:pulse 1.2s 3}@keyframes pulse{50%{box-shadow:0 0 0 6px var(--md-primary-container)}}
-.flash{animation:fl .7s}@keyframes fl{from{background:var(--md-primary-container)}to{background:var(--md-surface-c-high)}}
+  :root{
+    --md-ref-typeface-brand:'Roboto','Noto Sans Thai',sans-serif;
+    --md-ref-typeface-plain:'Roboto','Noto Sans Thai',sans-serif;
+    --md-sys-color-primary:#35618e;--md-sys-color-on-primary:#fff;
+    --md-sys-color-primary-container:#d1e4ff;--md-sys-color-on-primary-container:#001d36;
+    --md-sys-color-error-container:#ffdad6;--md-sys-color-on-error-container:#410002;
+    --md-sys-color-surface:#f8f9ff;--md-sys-color-surface-container-low:#f2f3fa;
+    --md-sys-color-on-surface:#191c20;--md-sys-color-on-surface-variant:#43474e;--md-sys-color-outline-variant:#c3c6cf;
+    --box:min(72vw,62vh,320px);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:'Roboto','Noto Sans Thai',sans-serif;background:#000;color:#fff;overflow:hidden;-webkit-tap-highlight-color:transparent}
+  .material-symbols-outlined{font-size:24px;line-height:1}
+  .fill{font-variation-settings:'FILL' 1}
+  [hidden]{display:none!important}
+
+  /* camera */
+  #reader{position:fixed;inset:0;background:#000}
+  #reader video{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover}
+  #reader canvas,#reader img,#qr-shaded-region{display:none!important}
+  .frame{position:fixed;left:50%;top:46%;width:var(--box);height:var(--box);transform:translate(-50%,-50%);border-radius:20px;box-shadow:0 0 0 200vmax rgba(0,0,0,.55);pointer-events:none}
+  .frame i{position:absolute;width:44px;height:44px;border:4px solid #fff}
+  .frame .tl{left:-2px;top:-2px;border-right:0;border-bottom:0;border-top-left-radius:20px}
+  .frame .tr{right:-2px;top:-2px;border-left:0;border-bottom:0;border-top-right-radius:20px}
+  .frame .bl{left:-2px;bottom:-2px;border-right:0;border-top:0;border-bottom-left-radius:20px}
+  .frame .br{right:-2px;bottom:-2px;border-left:0;border-top:0;border-bottom-right-radius:20px}
+  .frame .line{position:absolute;left:8%;right:8%;height:2px;top:8%;background:#7fb8ff;box-shadow:0 0 12px 2px #7fb8ff;border-radius:2px;animation:scan 2s ease-in-out infinite alternate}
+  .frame.paused .line{animation-play-state:paused;opacity:0}
+  @keyframes scan{from{top:8%}to{top:92%}}
+  .hint{position:fixed;left:0;right:0;top:calc(46% + var(--box)/2 + 20px);text-align:center;font-size:15px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);padding:0 24px}
+
+  /* top bar */
+  .bar{position:fixed;z-index:6;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 8px) 8px 8px 16px;display:flex;align-items:center;gap:8px;background:linear-gradient(rgba(0,0,0,.55),transparent)}
+  .bar .ttl{flex:1;min-width:0}
+  .bar .ttl b{display:block;font-size:18px;font-weight:500}
+  .bar .ttl span{font-size:13px;opacity:.85}
+  .ib{all:unset;cursor:pointer;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff}
+  .ib:active{background:rgba(255,255,255,.18)}
+  .ib:focus-visible{outline:2px solid #fff}
+  .ib.on{background:#fff;color:#000}
+
+  /* bottom */
+  .bottom{position:fixed;z-index:6;left:0;right:0;bottom:0;padding:16px 16px calc(env(safe-area-inset-bottom) + 20px);display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(transparent,rgba(0,0,0,.6))}
+  .chip{display:flex;align-items:center;gap:8px;height:48px;padding:0 18px;border-radius:24px;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);font-size:15px;font-weight:500;cursor:pointer;border:0;color:#fff;font-family:inherit}
+  .chip b{font-size:20px;font-variant-numeric:tabular-nums}
+
+  /* result sheet */
+  .res{position:fixed;z-index:7;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 92px);border-radius:20px;padding:16px 18px;display:flex;align-items:center;gap:14px;transform:translateY(24px);opacity:0;pointer-events:none;transition:.22s;max-width:480px;margin:0 auto;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+  .res.show{transform:none;opacity:1;pointer-events:auto}
+  .res .material-symbols-outlined{font-size:44px}
+  .res .h{font-size:20px;font-weight:600}
+  .res .s{font-size:14px;margin-top:2px}
+  .res.ok{background:#1f8a4c;color:#fff}
+  .res.bad{background:#ba1a1a;color:#fff}
+  .res.wait{background:#fff;color:#191c20}
+
+  /* list sheet */
+  .sheet{position:fixed;left:0;right:0;bottom:0;max-height:70vh;background:var(--md-sys-color-surface);color:var(--md-sys-color-on-surface);border-radius:28px 28px 0 0;transform:translateY(100%);transition:.25s;display:flex;flex-direction:column;z-index:9;padding-bottom:env(safe-area-inset-bottom)}
+  .sheet.show{transform:none}
+  .sheet .hd{display:flex;align-items:center;gap:8px;padding:16px 8px 8px 24px}
+  .sheet .hd b{flex:1;font-size:18px;font-weight:500}
+  .sheet .bd{overflow:auto;padding:0 16px 16px}
+  .item{display:flex;gap:16px;align-items:center;padding:12px 8px;border-bottom:1px solid var(--md-sys-color-outline-variant)}
+  .item b{width:52px;font-weight:500;font-variant-numeric:tabular-nums}
+  .t2{font-size:13px;color:var(--md-sys-color-on-surface-variant)}
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:8}
+
+  /* login / start */
+  .login{position:fixed;inset:0;overflow:auto;background:var(--md-sys-color-surface);color:var(--md-sys-color-on-surface);display:flex;flex-direction:column;justify-content:center;gap:20px;padding:24px;z-index:10}
+  .login > *{width:100%;max-width:400px;margin:0 auto}
+  .login h1{margin:0;font-size:30px;font-weight:400}
+  .start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;z-index:3}
+  .snack{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 72px);transform:translate(-50%,-10px);opacity:0;pointer-events:none;background:#2e3135;color:#eff0f7;padding:12px 16px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px);width:max-content;word-break:break-word;transition:.2s;z-index:20}
+  .snack.show{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
-<header class="top-bar"><span class="ms" aria-hidden="true">qr_code_scanner</span><h1>ReaderQR</h1><span id="mode" class="chip"></span></header>
-<main class="wrap">
-<h2 class="headline">สแกน QR Code</h2>
-<p class="sub">สแกน QR Code และบาร์โค้ด (EAN-13, UPC, Code 128) ผ่านกล้องสด ผลลัพธ์บันทึกลง Supabase อัตโนมัติ</p>
-<div class="grid">
-<section class="col">
-<div class="card">
-<div class="viewer">
-<div id="reader"></div>
-<div id="idle" class="idle"><span class="ms">photo_camera</span><span>กด “เปิดกล้อง” เพื่อเริ่มสแกน</span></div>
-</div>
-<div class="actions">
-<div class="select-field"><label for="cam">กล้อง</label><select id="cam"><option value="">กล้องหลัง (ค่าเริ่มต้น)</option></select><span class="ms">arrow_drop_down</span></div>
-<button id="startBtn" class="btn btn-filled"><span class="ms">videocam</span>เปิดกล้อง</button>
-<button id="stopBtn" class="btn btn-outlined" disabled><span class="ms">stop</span>หยุด</button>
-<label class="btn btn-tonal" id="photoBtn"><span class="ms">add_a_photo</span>ถ่ายรูป QR<input id="photoInput" type="file" accept="image/*" capture="environment" hidden></label>
-</div>
-<div id="filereader" hidden></div>
-<div id="status" class="status"></div>
-</div>
-<div class="card filled card-pad" id="resultCard">
-<div class="label-s">ผลล่าสุด</div>
-<div class="code" id="lastCode">—</div>
-<div class="meta" id="lastMeta">ยังไม่มีการสแกน</div>
-</div>
-<form id="manual" class="row"><div class="text-field"><label for="manualInput">ทดสอบโดยพิมพ์รหัส</label><input id="manualInput" autocomplete="off"></div><button class="btn btn-tonal" type="submit"><span class="ms">save</span>บันทึก</button></form>
+
+<section id="login" class="login" hidden>
+  <div><h1>สแกนคูปองอาหาร</h1><div class="t2" style="font-size:14px">LongWelaWai · สำหรับผู้ค้า</div></div>
+  <md-outlined-text-field id="u" label="ชื่อผู้ใช้" autocapitalize="none" autocomplete="username"></md-outlined-text-field>
+  <md-outlined-text-field id="p" label="รหัสผ่าน" type="password" autocomplete="current-password"></md-outlined-text-field>
+  <md-filled-button id="btnLogin" style="--md-filled-button-container-height:48px">เข้าสู่ระบบ</md-filled-button>
 </section>
-<section class="card">
-<div class="list-head"><h3 class="title-l">ประวัติการสแกน</h3><button id="reloadBtn" class="btn btn-text"><span class="ms">refresh</span>รีเฟรช</button></div>
-<ul class="list" id="rows"></ul>
-<div id="empty" class="empty"><span class="ms">history</span>ยังไม่มีข้อมูล</div>
-</section>
+
+<div id="app" hidden>
+  <div id="reader"></div>
+  <div class="frame" id="frame"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i><div class="line"></div></div>
+  <div class="hint" id="hint">วาง QR ของพนักงานไว้ในกรอบ</div>
+
+  <div id="startBox" class="start" hidden>
+    <span class="material-symbols-outlined" style="font-size:56px">videocam_off</span>
+    <div id="startMsg" style="font-size:16px">แตะเพื่อเปิดกล้อง</div>
+    <md-filled-button id="btnStart" style="--md-filled-button-container-height:48px"><span class="material-symbols-outlined" slot="icon">videocam</span>เปิดกล้อง</md-filled-button>
+  </div>
+
+  <header class="bar">
+    <div class="ttl"><b>สแกนคูปองอาหาร</b><span id="who"></span></div>
+    <button class="ib" id="btnTorch" aria-label="ไฟฉาย" hidden><span class="material-symbols-outlined">flashlight_on</span></button>
+    <button class="ib" id="btnLogout" aria-label="ออกจากระบบ"><span class="material-symbols-outlined">logout</span></button>
+  </header>
+
+  <div class="res" id="res"></div>
+
+  <div class="bottom">
+    <button class="chip" id="btnList"><span class="material-symbols-outlined">restaurant</span>รับแล้ว <b id="cnt">–</b><span id="elig" style="opacity:.8"></span></button>
+    <button class="ib" id="btnRefresh" aria-label="รีเฟรช"><span class="material-symbols-outlined">refresh</span></button>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="sheet" id="sheet">
+    <div class="hd"><b>รับอาหารวันนี้</b><md-icon-button id="btnClose" aria-label="ปิด"><span class="material-symbols-outlined">close</span></md-icon-button></div>
+    <div class="bd" id="list"></div>
+  </div>
 </div>
-</main>
-<div id="snack" class="snackbar" role="status"></div>
+
+<div class="snack" id="snack"></div>
+
 <script>
-(function(){
-  // ถ้านำไฟล์นี้ไปโฮสต์เอง (GitHub Pages / Netlify ฯลฯ) ให้ใส่ URL /exec ของ Apps Script เพื่อใช้กล้องสดได้เต็มที่
-  var GAS_URL='https://script.google.com/macros/s/AKfycbwbmP5Cgxw-tY0O20usIZGNDxwNc4awsEENPByyGNZNCLR2ZWlfoWSS2zcHgixtgcpztg/exec';
-  var API_TOKEN='';
-  var isGAS=!!(window.google&&google.script&&google.script.run);
-  function rest(body){body.token=API_TOKEN;return fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error);return j.data;});}
-  function gas(fn,arg){return new Promise(function(res,rej){google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](arg);});}
-  var KEY='readerqr-demo-scans';
-  var mock={
-    getScans:function(){return Promise.resolve(JSON.parse(localStorage.getItem(KEY)||'[]'));},
-    saveScan:function(d){var l=JSON.parse(localStorage.getItem(KEY)||'[]');var r={id:Date.now(),code:d.code,format:d.format,scanned_at:new Date().toISOString()};l.unshift(r);localStorage.setItem(KEY,JSON.stringify(l.slice(0,50)));return Promise.resolve(r);}
-  };
-  var api=isGAS?{getScans:function(){return gas('getScans',50);},saveScan:function(d){return gas('saveScan',d);}}
-    :GAS_URL?{getScans:function(){return rest({action:'list',limit:50});},saveScan:function(d){return rest({action:'save',code:d.code,format:d.format});}}
-    :mock;
-  var $=function(id){return document.getElementById(id);};
-  $('mode').innerHTML=(isGAS||GAS_URL)?'<span class="ms">cloud_done</span>Supabase':'<span class="ms">science</span>โหมดตัวอย่าง';
-  if(isGAS||GAS_URL)$('mode').classList.add('live');
+/* ===== ตั้งค่า (ไม่บังคับ): URL ของ Web app ที่ลงท้าย /exec
+   ถ้าเปิดจากปุ่ม "สแกน QR" ในแอป ระบบส่ง URL มาให้อัตโนมัติ ไม่ต้องแก้ ===== */
+const GAS_URL_CONFIG = 'https://script.google.com/macros/s/XXXXXXXX/exec';
 
-  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-  function fmt(t){var d=new Date(t);return d.toLocaleDateString('th-TH',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
-  var st;function snack(m){var s=$('snack');s.textContent=m;s.classList.add('show');clearTimeout(st);st=setTimeout(function(){s.classList.remove('show');},3000);}
-  function status(msg,err){var s=$('status');s.className='status'+(err?' err':'');s.innerHTML=msg?'<span class="ms">'+(err?'error':'info')+'</span><span>'+esc(msg)+'</span>':'';}
-  function render(list){
-    $('rows').innerHTML=list.map(function(r){
-      var url=/^https?:\/\//i.test(r.code),m=r.format==='MANUAL',bar=/EAN|UPC|CODE_|ITF/.test(r.format||'');
-      var t=url?'<a href="'+esc(r.code)+'" target="_blank" rel="noopener">'+esc(r.code)+'</a>':esc(r.code);
-      return '<li><span class="avatar'+(m?' m':'')+'"><span class="ms">'+(m?'keyboard':url?'link':bar?'barcode':'qr_code_2')+'</span></span><div class="li-main"><div class="li-title">'+t+'</div><div class="li-sub">'+fmt(r.scanned_at)+' · '+esc(r.format||'QR_CODE')+'</div></div></li>';
-    }).join('');
-    $('empty').style.display=list.length?'none':'flex';
-  }
-  function load(){return api.getScans().then(render).catch(function(e){status('โหลดประวัติไม่สำเร็จ: '+(e.message||e),true);});}
+(function () {
+  const $ = s => document.querySelector(s);
+  const OK_URL = u => /^https:\/\/script\.google\.com\/(a\/[^/]+\/)?macros\/s\/[^/]+\/exec$/.test(u || '');
+  const pApi = new URLSearchParams(location.hash.slice(1)).get('api') || new URLSearchParams(location.search).get('api');
+  if (OK_URL(pApi)) localStorage.setItem('lws_api', pApi);
+  const GAS_URL = OK_URL(localStorage.getItem('lws_api')) ? localStorage.getItem('lws_api') : GAS_URL_CONFIG;
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const DEMO = /XXXX/.test(GAS_URL);
+  const S = { token: localStorage.getItem('lws_token'), cam: null, busy: false, last: '', lastAt: 0, audio: null, torch: false, resT: null };
 
-  var lastCode=null,lastAt=0,saving=false;
-  function handle(code,format){
-    var now=Date.now();
-    if(saving||(code===lastCode&&now-lastAt<3000))return;
-    lastCode=code;lastAt=now;saving=true;
-    $('lastCode').textContent=code;$('lastMeta').innerHTML='<span class="ms">sync</span>กำลังบันทึก…';
-    var card=$('resultCard');card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
-    if(navigator.vibrate)navigator.vibrate(80);
-    api.saveScan({code:code,format:format}).then(function(r){$('lastMeta').innerHTML='<span class="ms">check_circle</span>บันทึกแล้ว · '+fmt(r.scanned_at);snack('บันทึกแล้ว');return load();})
-      .catch(function(e){$('lastMeta').innerHTML='<span class="ms">error</span>บันทึกไม่สำเร็จ';status(e.message||String(e),true);})
-      .finally(function(){saving=false;});
+  function snack(m) { const el = $('#snack'); el.textContent = m; el.classList.add('show'); clearTimeout(snack.t); snack.t = setTimeout(() => el.classList.remove('show'), m.length > 60 ? 9000 : 3500); }
+
+  async function call(fn, ...args) {
+    if (DEMO) return Demo[fn](...args);
+    if (!OK_URL(GAS_URL)) throw new Error('GAS_URL ไม่ถูกต้อง ต้องเป็น https://script.google.com/macros/s/.../exec');
+    let r, j;
+    try {
+      r = await fetch(GAS_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn, args }) });
+    } catch (e) {
+      throw new Error('เชื่อมต่อ Apps Script ไม่ได้ · ตรวจ Deploy: Who has access = Anyone และ Deploy เป็น New version แล้ว · ทดสอบโดยเปิด ' + GAS_URL + '?ping=1');
+    }
+    try { j = await r.json(); }
+    catch (e) { throw new Error('Apps Script ไม่ได้ตอบเป็น JSON (อาจยังไม่ได้ Deploy เวอร์ชันที่มี doPost หรือสคริปต์ยังไม่ได้อนุญาตสิทธิ์)'); }
+    if (!j.ok) {
+      if (String(j.error).includes('SESSION_EXPIRED')) { logout(true); throw new Error('หมดเวลาใช้งาน กรุณาเข้าสู่ระบบใหม่'); }
+      throw new Error(j.error);
+    }
+    return j.data;
   }
 
-  var qr=null;
-  function setRunning(on){$('startBtn').disabled=on;$('stopBtn').disabled=!on;$('cam').disabled=on;$('idle').style.display=on?'none':'flex';}
-  function listCams(){
-    if(!window.Html5Qrcode)return;
-    Html5Qrcode.getCameras().then(function(cams){
-      var sel=$('cam'),cur=sel.value;
-      sel.innerHTML='<option value="">กล้องหลัง (ค่าเริ่มต้น)</option>'+cams.map(function(c,i){return '<option value="'+esc(c.id)+'">'+esc(c.label||('กล้อง '+(i+1)))+'</option>';}).join('');
-      sel.value=cur;
-    }).catch(function(){});
+  function beep(ok) {
+    try {
+      S.audio = S.audio || new (window.AudioContext || window.webkitAudioContext)();
+      const a = S.audio, o = a.createOscillator(), g = a.createGain();
+      o.frequency.value = ok ? 1320 : 260; o.type = ok ? 'sine' : 'square';
+      g.gain.value = 0.15; o.connect(g); g.connect(a.destination);
+      o.start(); o.stop(a.currentTime + (ok ? 0.12 : 0.45));
+    } catch (e) {}
+    if (navigator.vibrate) navigator.vibrate(ok ? 60 : [90, 60, 90]);
   }
-  $('startBtn').onclick=function(){
-    if(!window.Html5Qrcode){status('โหลดไลบรารี html5-qrcode ไม่สำเร็จ',true);return;}
-    var F=Html5QrcodeSupportedFormats;
-    qr=qr||new Html5Qrcode('reader',{formatsToSupport:[F.QR_CODE,F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF,F.DATA_MATRIX],experimentalFeatures:{useBarCodeDetectorIfSupported:true},verbose:false});
-    var cam=$('cam').value?{deviceId:{exact:$('cam').value}}:{facingMode:'environment'};
-    status('กำลังเปิดกล้อง…');
-    qr.start(cam,{fps:10,qrbox:function(w,h){var s=Math.floor(Math.min(w,h)*0.8);return {width:s,height:Math.floor(s*0.75)};}},
-      function(text,res){handle(text,res&&res.result&&res.result.format?res.result.format.formatName:'QR_CODE');},function(){})
-      .then(function(){setRunning(true);status('กำลังสแกน — หันกล้องไปที่ QR Code หรือบาร์โค้ด');listCams();})
-      .catch(function(e){
-        setRunning(false);
-        var m=String(e&&(e.name||e.message)||e);
-        if(/NotAllowed|Permission/i.test(m)){
-          status(window.self!==window.top
-            ?'เบราว์เซอร์ไม่อนุญาตกล้องสดในหน้านี้ — กด “ถ่ายรูป QR” แทน หรือเปิดสิทธิ์กล้องให้ Chrome (ตั้งค่า > แอป > Chrome > สิทธิ์ > กล้อง) และ script.google.com (Chrome > ⋮ > การตั้งค่า > การตั้งค่าเว็บไซต์ > กล้อง)'
-            :'ไม่ได้รับอนุญาตให้ใช้กล้อง — แตะไอคอนแม่กุญแจข้าง URL > สิทธิ์ > กล้อง > อนุญาต แล้วลองใหม่',true);
-          var p=$('photoBtn');p.classList.remove('attn');void p.offsetWidth;p.classList.add('attn');
-        }else if(/NotFound|Overconstrained/i.test(m)){status('ไม่พบกล้องบนอุปกรณ์นี้ — กด “ถ่ายรูป QR” แทน',true);}
-        else if(/NotReadable/i.test(m)){status('กล้องถูกใช้งานโดยแอปอื่นอยู่ — ปิดแอปนั้นแล้วลองใหม่',true);}
-        else status('เปิดกล้องไม่ได้: '+m,true);
-      });
-  };
-  var fileQr=null;
-  $('photoInput').onchange=function(){
-    var f=this.files&&this.files[0];this.value='';
-    if(!f)return;
-    if(!window.Html5Qrcode){status('โหลดไลบรารี html5-qrcode ไม่สำเร็จ',true);return;}
-    fileQr=fileQr||new Html5Qrcode('filereader',{verbose:false});
-    status('กำลังอ่านรูป…');
-    fileQr.scanFileV2(f,false).then(function(res){status('อ่าน QR จากรูปสำเร็จ');lastCode=null;handle(res.decodedText,res.result&&res.result.format?res.result.format.formatName:'QR_CODE');})
-      .catch(function(){status('ไม่พบ QR Code ในรูป — ถ่ายให้ใกล้และชัดขึ้น',true);});
-  };
-  $('stopBtn').onclick=function(){if(qr&&qr.isScanning)qr.stop().then(function(){qr.clear();setRunning(false);status('หยุดสแกนแล้ว');});};
-  $('reloadBtn').onclick=load;
-  $('manual').onsubmit=function(e){e.preventDefault();var v=$('manualInput').value.trim();if(v){lastCode=null;handle(v,'MANUAL');$('manualInput').value='';}};
-  load();
+
+  /* ---------- auth ---------- */
+  async function doLogin() {
+    const b = $('#btnLogin'); b.disabled = true;
+    try {
+      const r = await call('loginUser', $('#u').value, $('#p').value);
+      if (!['vendor', 'admin'].includes(r.employee.role)) throw new Error('บัญชีนี้ไม่มีสิทธิ์สแกน');
+      S.token = r.token; localStorage.setItem('lws_token', r.token); $('#p').value = '';
+      beep(true); start(r.employee);
+    } catch (e) { snack(e.message); }
+    finally { b.disabled = false; }
+  }
+  function logout(silent) {
+    if (S.token && !silent) call('logout', S.token).catch(() => {});
+    S.token = null; localStorage.removeItem('lws_token');
+    stopCam(); $('#app').hidden = true; $('#login').hidden = false;
+  }
+  function start(emp) {
+    $('#login').hidden = true; $('#app').hidden = false;
+    $('#who').textContent = emp.full_name || '';
+    refresh();
+    startCam();
+  }
+
+  /* ---------- กล้อง ---------- */
+  async function startCam() {
+    if (S.cam) return;
+    $('#startBox').hidden = true;
+    const cam = new Html5Qrcode('reader', { verbose: false, formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE], experimentalFeatures: { useBarCodeDetectorIfSupported: false } });
+    S.cam = cam;
+    try {
+      await cam.start({ facingMode: 'environment' }, { fps: 15, disableFlip: true, videoConstraints: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } } }, onScan, () => {});
+      $('#frame').classList.remove('paused');
+      try { const cap = cam.getRunningTrackCapabilities(); $('#btnTorch').hidden = !(cap && cap.torch); } catch (e) { $('#btnTorch').hidden = true; }
+    } catch (e) {
+      S.cam = null;
+      const raw = String((e && (e.name || e.message)) || e || '');
+      const n = ((/error\s*=\s*([A-Za-z]+)/.exec(raw) || /([A-Za-z]+Error)/.exec(raw) || [])[1]) || raw.split(':')[0];
+      $('#startMsg').textContent = 'เปิดกล้องไม่ได้' + (n ? ' (' + n + ')' : '') + ' · ตรวจสิทธิ์กล้องของเว็บนี้ใน Chrome แล้วแตะเปิดกล้อง';
+      $('#startBox').hidden = false;
+    }
+  }
+  async function stopCam() {
+    const c = S.cam; S.cam = null; S.torch = false; $('#btnTorch').classList.remove('on');
+    if (c) { try { await c.stop(); } catch (e) {} try { c.clear(); } catch (e) {} }
+  }
+  async function toggleTorch() {
+    if (!S.cam) return;
+    S.torch = !S.torch;
+    try { await S.cam.applyVideoConstraints({ advanced: [{ torch: S.torch }] }); $('#btnTorch').classList.toggle('on', S.torch); }
+    catch (e) { S.torch = false; snack('เปิดไฟฉายไม่ได้'); }
+  }
+
+  /* ---------- สแกน ---------- */
+  async function onScan(text) {
+    const now = Date.now();
+    if (S.busy || (text === S.last && now - S.lastAt < 4000)) return;
+    S.busy = true; S.last = text; S.lastAt = now;
+    $('#frame').classList.add('paused');
+    show({ result: 'wait' }, true);
+    let ok = false;
+    try {
+      const r = await call('redeemLunch', S.token, text);
+      ok = r.result === 'ok';
+      show(r); beep(ok);
+      if (ok) refresh();
+    } catch (e) { show({ result: 'invalid', reason: e.message }); beep(false); }
+    setTimeout(() => { S.busy = false; $('#frame').classList.remove('paused'); }, ok ? 1500 : 2500);
+  }
+  function show(r, sticky) {
+    const th = d => { const [y, m, dd] = String(d || '').split('-').map(Number); return dd ? dd + '/' + m + '/' + (y + 543) : ''; };
+    const V = {
+      wait:       ['wait', 'hourglass_top', 'กำลังตรวจสอบ…', ''],
+      ok:         ['ok', 'check_circle', 'รับอาหารได้', esc(r.full_name) + ' · ' + esc(r.emp_code) + ' · เข้างาน ' + esc(r.clock_in)],
+      duplicate:  ['bad', 'block', 'สแกนซ้ำ · รับไปแล้ว', esc(r.full_name) + ' · ' + esc(r.emp_code) + ' · รับเมื่อ ' + esc(r.scanned_at)],
+      wrong_date: ['bad', 'event_busy', 'ไม่ตรงวัน · ใช้ไม่ได้', 'QR ของวันที่ ' + th(r.date) + (r.emp_code ? ' · ' + esc(r.emp_code) : '')],
+      invalid:    ['bad', 'error', 'ใช้ไม่ได้', esc(r.reason || '') + (r.emp_code ? ' · ' + esc(r.emp_code) : '')],
+    }[r.result] || ['bad', 'error', 'ใช้ไม่ได้', ''];
+    const el = $('#res');
+    el.className = 'res show ' + V[0];
+    el.innerHTML = '<span class="material-symbols-outlined fill">' + V[1] + '</span><div><div class="h">' + V[2] + '</div>' + (V[3] ? '<div class="s">' + V[3] + '</div>' : '') + '</div>';
+    clearTimeout(S.resT);
+    if (!sticky) S.resT = setTimeout(() => el.classList.remove('show'), r.result === 'ok' ? 2200 : 3500);
+  }
+
+  async function refresh() {
+    try {
+      const r = await call('getLunchList', S.token);
+      $('#cnt').textContent = r.count;
+      $('#elig').textContent = '/ ' + r.eligible;
+      $('#list').innerHTML = r.items.map(i => '<div class="item"><b>' + esc(i.time) + '</b><div><div>' + esc(i.full_name) + '</div><div class="t2">' + esc(i.emp_code) + (i.department ? ' · ' + esc(i.department) : '') + ' · เข้างาน ' + esc(i.clock_in || '—') + '</div></div></div>').join('')
+        || '<div class="t2" style="padding:24px;text-align:center">ยังไม่มีการรับอาหาร</div>';
+    } catch (e) { snack(e.message); }
+  }
+  function sheet(open) { $('#sheet').classList.toggle('show', open); $('#scrim').hidden = !open; if (open) refresh(); }
+
+  /* ---------- Demo (ยังไม่ได้ตั้ง GAS_URL) ---------- */
+  const Demo = (() => {
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' });
+    const got = [];
+    const hm = () => new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' });
+    return {
+      loginUser: (u, p) => { if (!u || !p) throw new Error('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'); return { token: 'demo', employee: { full_name: 'ร้านอาหาร (ตัวอย่าง)', role: 'vendor' } }; },
+      whoami: () => ({ full_name: 'ร้านอาหาร (ตัวอย่าง)', role: 'vendor' }),
+      logout: () => true,
+      getLunchList: () => ({ count: got.length, eligible: 12, items: got }),
+      redeemLunch: (t, p) => {
+        const x = String(p).split('|');
+        if (x.length !== 5 || x[0] !== 'LWW1') return { result: 'invalid', reason: 'ไม่ใช่ QR คูปองอาหาร' };
+        if (x[2] !== today) return { result: 'wrong_date', date: x[2], emp_code: x[1] };
+        const prev = got.find(g => g.emp_code === x[1]);
+        if (prev) return { result: 'duplicate', emp_code: x[1], full_name: prev.full_name, scanned_at: prev.time };
+        const it = { time: hm(), emp_code: x[1], full_name: 'พนักงาน ' + x[1], clock_in: x[3] };
+        got.unshift(it); return Object.assign({ result: 'ok', scanned_at: it.time }, it);
+      },
+    };
+  })();
+
+  /* ---------- init ---------- */
+  $('#btnLogin').addEventListener('click', doLogin);
+  $('#p').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  $('#btnLogout').addEventListener('click', () => logout(false));
+  $('#btnRefresh').addEventListener('click', refresh);
+  $('#btnStart').addEventListener('click', () => { beep(true); startCam(); });
+  $('#btnTorch').addEventListener('click', toggleTorch);
+  $('#btnList').addEventListener('click', () => sheet(true));
+  $('#btnClose').addEventListener('click', () => sheet(false));
+  $('#scrim').addEventListener('click', () => sheet(false));
+  $('#res').addEventListener('click', () => $('#res').classList.remove('show'));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopCam();
+    else if (S.token && !$('#app').hidden) startCam();
+  });
+
+  const m = /[#&]t=([^&]+)/.exec(location.hash);
+  if (m) { S.token = decodeURIComponent(m[1]); localStorage.setItem('lws_token', S.token); history.replaceState(null, '', location.pathname + location.search); }
+  if (S.token) call('whoami', S.token).then(start).catch(e => { snack(e.message); logout(true); });
+  else $('#login').hidden = false;
 })();
 </script>
 </body>
