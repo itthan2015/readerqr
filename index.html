@@ -1,1 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaderQR</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root{--md-primary:#3b5ba9;--md-on-primary:#fff;--md-primary-container:#dae2ff;--md-on-primary-container:#001848;--md-secondary-container:#dde2f3;--md-on-secondary-container:#151b2c;--md-surface:#faf8ff;--md-surface-c-low:#f3f3fa;--md-surface-c:#ededf4;--md-surface-c-high:#e7e7ee;--md-on-surface:#1a1b21;--md-on-surface-var:#44464f;--md-outline:#757780;--md-outline-var:#c5c6d0;--md-error:#ba1a1a;--md-error-container:#ffdad6;--md-tertiary-container:#ffd8ec;--md-on-tertiary-container:#3a0b2a;--md-elev1:0 1px 2px rgba(0,0,0,.3),0 1px 3px 1px rgba(0,0,0,.15);--md-elev3:0 1px 3px rgba(0,0,0,.3),0 4px 8px 3px rgba(0,0,0,.15)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--md-surface);color:var(--md-on-surface);font-family:Roboto,"Noto Sans Thai",system-ui,sans-serif;font-size:14px;line-height:20px;letter-spacing:.25px}
+a{color:var(--md-primary)}a:hover{color:var(--md-on-primary-container)}
+.ms{font-family:"Material Symbols Outlined";font-weight:normal;font-style:normal;font-size:24px;line-height:1;display:inline-block;-webkit-font-smoothing:antialiased;font-feature-settings:"liga"}
+.top-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:16px;height:64px;padding:0 16px;background:var(--md-surface-c);}
+.top-bar h1{font-size:22px;line-height:28px;font-weight:400;margin:0;flex:1}
+.chip{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border:1px solid var(--md-outline-var);border-radius:8px;font-size:14px;font-weight:500;color:var(--md-on-surface-var)}
+.chip.live{background:var(--md-secondary-container);border-color:transparent;color:var(--md-on-secondary-container)}
+.chip .ms{font-size:18px}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 48px}
+.headline{font-size:32px;line-height:40px;font-weight:400;margin:0 0 4px}
+.sub{color:var(--md-on-surface-var);margin:0 0 24px;font-size:16px;line-height:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:24px;align-items:start}
+.card{background:var(--md-surface-c-low);border-radius:12px;box-shadow:var(--md-elev1);overflow:hidden}
+.card.filled{background:var(--md-surface-c-high);box-shadow:none}
+.card-pad{padding:16px}
+.col{display:flex;flex-direction:column;gap:16px}
+.viewer{position:relative;aspect-ratio:1/1;background:#111318;color:#c5c6d0;display:grid;place-items:center}
+#reader{position:absolute;inset:0}#reader video{width:100%!important;height:100%!important;object-fit:cover;display:block}
+#reader:empty{display:none}
+.idle{display:flex;flex-direction:column;align-items:center;gap:12px;font-size:16px;text-align:center;padding:24px}
+.idle .ms{font-size:56px;color:#aac7ff}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 24px;border:0;border-radius:20px;font:500 14px/20px Roboto,"Noto Sans Thai",sans-serif;letter-spacing:.1px;cursor:pointer;overflow:hidden;background:transparent;color:var(--md-primary)}
+.btn .ms{font-size:18px}
+.btn::after{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .15s}
+.btn:hover::after{opacity:.08}.btn:active::after{opacity:.12}
+.btn:disabled{opacity:.38;cursor:default}.btn:disabled::after{display:none}
+.btn-filled{background:var(--md-primary);color:var(--md-on-primary)}.btn-filled:hover{box-shadow:var(--md-elev1)}
+.btn-tonal{background:var(--md-secondary-container);color:var(--md-on-secondary-container)}
+.btn-outlined{border:1px solid var(--md-outline);padding:0 16px}
+.btn-text{padding:0 12px}
+:focus-visible{outline:3px solid var(--md-primary);outline-offset:2px}
+.select-field{position:relative;flex:1;min-width:180px}
+.select-field select,.text-field input{width:100%;height:56px;padding:20px 16px 6px;border:1px solid var(--md-outline);border-radius:4px;background:transparent;color:var(--md-on-surface);font:400 16px/24px Roboto,"Noto Sans Thai",sans-serif;appearance:none}
+.select-field select{padding-right:40px}
+.select-field .ms{position:absolute;right:12px;top:16px;pointer-events:none;color:var(--md-on-surface-var)}
+.select-field label,.text-field label{position:absolute;left:16px;top:6px;font-size:12px;line-height:16px;color:var(--md-on-surface-var);pointer-events:none}
+.select-field select:hover,.text-field input:hover{border-color:var(--md-on-surface)}
+.select-field select:focus-visible,.text-field input:focus-visible{outline:none;border:2px solid var(--md-primary);padding-left:15px}
+.text-field{position:relative;flex:1;min-width:180px}
+.status{display:flex;align-items:center;gap:8px;padding:0 16px 16px;color:var(--md-on-surface-var);min-height:20px}
+.status .ms{font-size:18px}.status.err{color:var(--md-error)}.status:empty{display:none}
+.label-s{font-size:12px;line-height:16px;font-weight:500;letter-spacing:.5px;color:var(--md-on-surface-var);text-transform:none}
+.code{font-size:22px;line-height:28px;word-break:break-all;margin:8px 0}
+.meta{display:flex;align-items:center;gap:6px;color:var(--md-on-surface-var)}.meta .ms{font-size:18px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.list-head{display:flex;align-items:center;justify-content:space-between;padding:16px 8px 8px 16px}
+.title-l{font-size:22px;line-height:28px;font-weight:400;margin:0}
+.list{list-style:none;margin:0;padding:0 0 8px}
+.list li{display:flex;align-items:center;gap:16px;padding:12px 16px;min-height:72px}
+.list li+li{border-top:1px solid var(--md-outline-var)}
+.avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--md-primary-container);color:var(--md-on-primary-container)}
+.avatar.m{background:var(--md-tertiary-container);color:var(--md-on-tertiary-container)}
+.li-main{flex:1;min-width:0}
+.li-title{font-size:16px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li-sub{color:var(--md-on-surface-var)}
+.empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:40px 16px;color:var(--md-on-surface-var);text-align:center}
+.empty .ms{font-size:40px}
+.snackbar{position:fixed;left:50%;bottom:24px;transform:translate(-50%,120px);min-width:280px;max-width:calc(100% - 32px);padding:14px 16px;border-radius:4px;background:#2f3036;color:#f1f0f7;box-shadow:var(--md-elev3);transition:transform .25s cubic-bezier(.2,0,0,1);z-index:5}
+.snackbar.show{transform:translate(-50%,0)}
+.btn:has(input:focus-visible){outline:3px solid var(--md-primary);outline-offset:2px}
+.btn.attn{animation:pulse 1.2s 3}@keyframes pulse{50%{box-shadow:0 0 0 6px var(--md-primary-container)}}
+.flash{animation:fl .7s}@keyframes fl{from{background:var(--md-primary-container)}to{background:var(--md-surface-c-high)}}
+</style>
+</head>
+<body>
+<header class="top-bar"><span class="ms" aria-hidden="true">qr_code_scanner</span><h1>ReaderQR</h1><span id="mode" class="chip"></span></header>
+<main class="wrap">
+<h2 class="headline">สแกน QR Code</h2>
+<p class="sub">สแกน QR Code และบาร์โค้ด (EAN-13, UPC, Code 128) ผ่านกล้องสด ผลลัพธ์บันทึกลง Supabase อัตโนมัติ</p>
+<div class="grid">
+<section class="col">
+<div class="card">
+<div class="viewer">
+<div id="reader"></div>
+<div id="idle" class="idle"><span class="ms">photo_camera</span><span>กด “เปิดกล้อง” เพื่อเริ่มสแกน</span></div>
+</div>
+<div class="actions">
+<div class="select-field"><label for="cam">กล้อง</label><select id="cam"><option value="">กล้องหลัง (ค่าเริ่มต้น)</option></select><span class="ms">arrow_drop_down</span></div>
+<button id="startBtn" class="btn btn-filled"><span class="ms">videocam</span>เปิดกล้อง</button>
+<button id="stopBtn" class="btn btn-outlined" disabled><span class="ms">stop</span>หยุด</button>
+<label class="btn btn-tonal" id="photoBtn"><span class="ms">add_a_photo</span>ถ่ายรูป QR<input id="photoInput" type="file" accept="image/*" capture="environment" hidden></label>
+</div>
+<div id="filereader" hidden></div>
+<div id="status" class="status"></div>
+</div>
+<div class="card filled card-pad" id="resultCard">
+<div class="label-s">ผลล่าสุด</div>
+<div class="code" id="lastCode">—</div>
+<div class="meta" id="lastMeta">ยังไม่มีการสแกน</div>
+</div>
+<form id="manual" class="row"><div class="text-field"><label for="manualInput">ทดสอบโดยพิมพ์รหัส</label><input id="manualInput" autocomplete="off"></div><button class="btn btn-tonal" type="submit"><span class="ms">save</span>บันทึก</button></form>
+</section>
+<section class="card">
+<div class="list-head"><h3 class="title-l">ประวัติการสแกน</h3><button id="reloadBtn" class="btn btn-text"><span class="ms">refresh</span>รีเฟรช</button></div>
+<ul class="list" id="rows"></ul>
+<div id="empty" class="empty"><span class="ms">history</span>ยังไม่มีข้อมูล</div>
+</section>
+</div>
+</main>
+<div id="snack" class="snackbar" role="status"></div>
+<script>
+(function(){
+  // ถ้านำไฟล์นี้ไปโฮสต์เอง (GitHub Pages / Netlify ฯลฯ) ให้ใส่ URL /exec ของ Apps Script เพื่อใช้กล้องสดได้เต็มที่
+  var GAS_URL='https://script.google.com/macros/s/AKfycbwbmP5Cgxw-tY0O20usIZGNDxwNc4awsEENPByyGNZNCLR2ZWlfoWSS2zcHgixtgcpztg/exec';
+  var API_TOKEN='';
+  var isGAS=!!(window.google&&google.script&&google.script.run);
+  function rest(body){body.token=API_TOKEN;return fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error);return j.data;});}
+  function gas(fn,arg){return new Promise(function(res,rej){google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](arg);});}
+  var KEY='readerqr-demo-scans';
+  var mock={
+    getScans:function(){return Promise.resolve(JSON.parse(localStorage.getItem(KEY)||'[]'));},
+    saveScan:function(d){var l=JSON.parse(localStorage.getItem(KEY)||'[]');var r={id:Date.now(),code:d.code,format:d.format,scanned_at:new Date().toISOString()};l.unshift(r);localStorage.setItem(KEY,JSON.stringify(l.slice(0,50)));return Promise.resolve(r);}
+  };
+  var api=isGAS?{getScans:function(){return gas('getScans',50);},saveScan:function(d){return gas('saveScan',d);}}
+    :GAS_URL?{getScans:function(){return rest({action:'list',limit:50});},saveScan:function(d){return rest({action:'save',code:d.code,format:d.format});}}
+    :mock;
+  var $=function(id){return document.getElementById(id);};
+  $('mode').innerHTML=(isGAS||GAS_URL)?'<span class="ms">cloud_done</span>Supabase':'<span class="ms">science</span>โหมดตัวอย่าง';
+  if(isGAS||GAS_URL)$('mode').classList.add('live');
 
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmt(t){var d=new Date(t);return d.toLocaleDateString('th-TH',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+  var st;function snack(m){var s=$('snack');s.textContent=m;s.classList.add('show');clearTimeout(st);st=setTimeout(function(){s.classList.remove('show');},3000);}
+  function status(msg,err){var s=$('status');s.className='status'+(err?' err':'');s.innerHTML=msg?'<span class="ms">'+(err?'error':'info')+'</span><span>'+esc(msg)+'</span>':'';}
+  function render(list){
+    $('rows').innerHTML=list.map(function(r){
+      var url=/^https?:\/\//i.test(r.code),m=r.format==='MANUAL',bar=/EAN|UPC|CODE_|ITF/.test(r.format||'');
+      var t=url?'<a href="'+esc(r.code)+'" target="_blank" rel="noopener">'+esc(r.code)+'</a>':esc(r.code);
+      return '<li><span class="avatar'+(m?' m':'')+'"><span class="ms">'+(m?'keyboard':url?'link':bar?'barcode':'qr_code_2')+'</span></span><div class="li-main"><div class="li-title">'+t+'</div><div class="li-sub">'+fmt(r.scanned_at)+' · '+esc(r.format||'QR_CODE')+'</div></div></li>';
+    }).join('');
+    $('empty').style.display=list.length?'none':'flex';
+  }
+  function load(){return api.getScans().then(render).catch(function(e){status('โหลดประวัติไม่สำเร็จ: '+(e.message||e),true);});}
+
+  var lastCode=null,lastAt=0,saving=false;
+  function handle(code,format){
+    var now=Date.now();
+    if(saving||(code===lastCode&&now-lastAt<3000))return;
+    lastCode=code;lastAt=now;saving=true;
+    $('lastCode').textContent=code;$('lastMeta').innerHTML='<span class="ms">sync</span>กำลังบันทึก…';
+    var card=$('resultCard');card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
+    if(navigator.vibrate)navigator.vibrate(80);
+    api.saveScan({code:code,format:format}).then(function(r){$('lastMeta').innerHTML='<span class="ms">check_circle</span>บันทึกแล้ว · '+fmt(r.scanned_at);snack('บันทึกแล้ว');return load();})
+      .catch(function(e){$('lastMeta').innerHTML='<span class="ms">error</span>บันทึกไม่สำเร็จ';status(e.message||String(e),true);})
+      .finally(function(){saving=false;});
+  }
+
+  var qr=null;
+  function setRunning(on){$('startBtn').disabled=on;$('stopBtn').disabled=!on;$('cam').disabled=on;$('idle').style.display=on?'none':'flex';}
+  function listCams(){
+    if(!window.Html5Qrcode)return;
+    Html5Qrcode.getCameras().then(function(cams){
+      var sel=$('cam'),cur=sel.value;
+      sel.innerHTML='<option value="">กล้องหลัง (ค่าเริ่มต้น)</option>'+cams.map(function(c,i){return '<option value="'+esc(c.id)+'">'+esc(c.label||('กล้อง '+(i+1)))+'</option>';}).join('');
+      sel.value=cur;
+    }).catch(function(){});
+  }
+  $('startBtn').onclick=function(){
+    if(!window.Html5Qrcode){status('โหลดไลบรารี html5-qrcode ไม่สำเร็จ',true);return;}
+    var F=Html5QrcodeSupportedFormats;
+    qr=qr||new Html5Qrcode('reader',{formatsToSupport:[F.QR_CODE,F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF,F.DATA_MATRIX],experimentalFeatures:{useBarCodeDetectorIfSupported:true},verbose:false});
+    var cam=$('cam').value?{deviceId:{exact:$('cam').value}}:{facingMode:'environment'};
+    status('กำลังเปิดกล้อง…');
+    qr.start(cam,{fps:10,qrbox:function(w,h){var s=Math.floor(Math.min(w,h)*0.8);return {width:s,height:Math.floor(s*0.75)};}},
+      function(text,res){handle(text,res&&res.result&&res.result.format?res.result.format.formatName:'QR_CODE');},function(){})
+      .then(function(){setRunning(true);status('กำลังสแกน — หันกล้องไปที่ QR Code หรือบาร์โค้ด');listCams();})
+      .catch(function(e){
+        setRunning(false);
+        var m=String(e&&(e.name||e.message)||e);
+        if(/NotAllowed|Permission/i.test(m)){
+          status(window.self!==window.top
+            ?'เบราว์เซอร์ไม่อนุญาตกล้องสดในหน้านี้ — กด “ถ่ายรูป QR” แทน หรือเปิดสิทธิ์กล้องให้ Chrome (ตั้งค่า > แอป > Chrome > สิทธิ์ > กล้อง) และ script.google.com (Chrome > ⋮ > การตั้งค่า > การตั้งค่าเว็บไซต์ > กล้อง)'
+            :'ไม่ได้รับอนุญาตให้ใช้กล้อง — แตะไอคอนแม่กุญแจข้าง URL > สิทธิ์ > กล้อง > อนุญาต แล้วลองใหม่',true);
+          var p=$('photoBtn');p.classList.remove('attn');void p.offsetWidth;p.classList.add('attn');
+        }else if(/NotFound|Overconstrained/i.test(m)){status('ไม่พบกล้องบนอุปกรณ์นี้ — กด “ถ่ายรูป QR” แทน',true);}
+        else if(/NotReadable/i.test(m)){status('กล้องถูกใช้งานโดยแอปอื่นอยู่ — ปิดแอปนั้นแล้วลองใหม่',true);}
+        else status('เปิดกล้องไม่ได้: '+m,true);
+      });
+  };
+  var fileQr=null;
+  $('photoInput').onchange=function(){
+    var f=this.files&&this.files[0];this.value='';
+    if(!f)return;
+    if(!window.Html5Qrcode){status('โหลดไลบรารี html5-qrcode ไม่สำเร็จ',true);return;}
+    fileQr=fileQr||new Html5Qrcode('filereader',{verbose:false});
+    status('กำลังอ่านรูป…');
+    fileQr.scanFileV2(f,false).then(function(res){status('อ่าน QR จากรูปสำเร็จ');lastCode=null;handle(res.decodedText,res.result&&res.result.format?res.result.format.formatName:'QR_CODE');})
+      .catch(function(){status('ไม่พบ QR Code ในรูป — ถ่ายให้ใกล้และชัดขึ้น',true);});
+  };
+  $('stopBtn').onclick=function(){if(qr&&qr.isScanning)qr.stop().then(function(){qr.clear();setRunning(false);status('หยุดสแกนแล้ว');});};
+  $('reloadBtn').onclick=load;
+  $('manual').onsubmit=function(e){e.preventDefault();var v=$('manualInput').value.trim();if(v){lastCode=null;handle(v,'MANUAL');$('manualInput').value='';}};
+  load();
+})();
+</script>
+</body>
+</html>
